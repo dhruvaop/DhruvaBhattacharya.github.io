@@ -62,12 +62,18 @@ jobs:
       # Step 4: Auto-commit updated data to this repository if changes detected
       - name: Commit Updated Profile Data
         run: |
+          set -e
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          branch="${GITHUB_REF_NAME:-master}"
+
           if [ -n "$(git status --porcelain src/data)" ]; then
             git add src/data
             git commit -m "chore(sync): automated weekly LinkedIn & GitHub contributions sync [skip ci]"
-            git push origin HEAD
+            git fetch origin "$branch"
+            git rebase "origin/$branch"
+            git push origin "HEAD:$branch"
           else
             echo "No data changes detected. Skipping git commit."
           fi
